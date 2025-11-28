@@ -3,10 +3,30 @@ import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { CheckCircle2, Circle, Calendar, Square, SquarePen, Trash2, Trash2Icon } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  Calendar,
+  Square,
+  SquarePen,
+  Trash2,
+  Trash2Icon,
+} from "lucide-react";
+import { toast } from "sonner";
 
-const TaskCard = ({ task, index }) => {
+const TaskCard = ({ task, index, handleTaskChanged }) => {
   let isEditting = false;
+
+  const deleteTask = async (taskId) => {
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      toast.success("Nhiệm vụ đã xóa");
+      handleTaskChanged();
+    } catch (error) {
+      console.error("Lỗi xảy ra khi thêm task.", error);
+      toast.error("Lỗi xảy ra khi thêm nhiệm vụ mới.");
+    }
+  };
   return (
     <Card
       className={cn(
@@ -57,63 +77,46 @@ const TaskCard = ({ task, index }) => {
             </p>
           )}
 
-
-                  {/* Ngày tạo & ngày hoàn thành */}
-        <div className="flex items-center gap-2 mt-1">
-          <Calendar className="size-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
-            {new Date(task.createdAt).toLocaleDateString()}
-            {/* tolacaledatestring hàm theo giờ VN */}
-          </span>
-          {task.completedAt && (
-            <>
-              <span className="text-xs text-muted-foreground"> - </span>
-              <Calendar className="size-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">
-                {new Date(task.completedAt).toLocaleTimeString()}
-              </span>
-            </>
-          )}
+          {/* Ngày tạo & ngày hoàn thành */}
+          <div className="flex items-center gap-2 mt-1">
+            <Calendar className="size-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">
+              {new Date(task.createdAt).toLocaleDateString()}
+              {/* tolacaledatestring hàm theo giờ VN */}
+            </span>
+            {task.completedAt && (
+              <>
+                <span className="text-xs text-muted-foreground"> - </span>
+                <Calendar className="size-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {new Date(task.completedAt).toLocaleTimeString()}
+                </span>
+              </>
+            )}
+          </div>
         </div>
-        </div>
-
 
         {/* Nút chỉnh và nút xóa */}
 
         <div className="hidden gap-2 group-hover:inline-flex animate-slide-up">
-        
-        {/* Nút edit */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0 transition-colors size-8 text-muted-foreground hover:text-info "
-        
-        >
-          <SquarePen className="size-4"></SquarePen>
-
-        </Button>
-
-        {/* Nút xóa */}
-        <Button
-        variant="ghost"
-          size="icon"
-          className="shrink-0 transition-colors size-8 text-gray-600 hover:text-destructive hover:bg-red "
-        
+          {/* Nút edit */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 transition-colors size-8 text-muted-foreground hover:text-info "
           >
-            <Trash2 className="size-4 " strokeWidth={2.5}/>
+            <SquarePen className="size-4"></SquarePen>
+          </Button>
 
-        </Button>
-
-
-
-
+          {/* Nút xóa */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 transition-colors size-8 text-gray-600 hover:text-destructive hover:bg-red "
+          >
+            <Trash2 className="size-4 " strokeWidth={2.5} />
+          </Button>
         </div>
-
-
-
-
-
-
       </div>
     </Card>
   );

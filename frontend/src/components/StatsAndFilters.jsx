@@ -1,53 +1,54 @@
-import { FilterType } from '@/lib/data'
-import { Badge } from "@/components/ui/badge"
-import React from 'react'
-import { Button } from './ui/button'
-import { Filter } from "lucide-react"
+import { FilterType } from '@/lib/data';
+import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Button } from './ui/button';
+import { Filter } from "lucide-react";
 
-
-const StatsAndFilters = ({completedTasksCount = 0, activeTasksCount = 0, filter = "all"}) => {
+// Nhận đúng tên props đã truyền từ HomePage
+const StatsAndFilters = ({ 
+  completedTasksCount = 0, 
+  activeTasksCount = 0, 
+  filter = "all",
+  setFilter 
+}) => {
   return (
-  <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center ">
+    <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 
-    {/* Phần thống kê */}
-    <div className="flex gap-3 ">
-      <Badge
-        variant="secondary"
-        className="bg-white/50 text-accent-foreground border-info/20"
-          >
-            {activeTasksCount} {FilterType.active}
-      </Badge>
-      <Badge
-        variant="secondary"
-        className="bg-white/50 text-success border-success/20"
+      {/* Phần thống kê */}
+      <div className="flex gap-3">
+        <Badge
+          variant="secondary"
+          className="bg-white/50 text-accent-foreground border-info/20"
         >
-            {completedTasksCount} {FilterType.completed}
-            {/* số nhiệm vụ hoàn thành kèm chữ hoàn thành */}
-
-      </Badge>
-    </div>
-    {/* Phần filter */}
-      <div className="flex flex-col gap-2 sm:flex-row">
-        {
-          Object.keys(FilterType).map((type)=> (
-            <Button
-              key={type}
-              variant={filter === type ? 'gradient' : 'ghost'}
-              size='sm'
-              className='capitalize'
-              >
-                <Filter className="size-4"/>
-                {FilterType[type]}
-            </Button>
-          ))
-        }
+          {activeTasksCount} {FilterType.active}
+        </Badge>
+        <Badge
+          variant="secondary"
+          className="bg-white/50 text-success border-success/20"
+        >
+          {completedTasksCount} {FilterType.completed}
+        </Badge>
       </div>
 
+      {/* Phần filter */}
+      <div className="flex flex-col gap-2 sm:flex-row">
+        {Object.keys(FilterType).map((type) => (
+          <Button
+            key={type}
+            variant={filter === type ? 'gradient' : 'ghost'} // Logic đổi màu nút đang chọn
+            size='sm'
+            className='capitalize'
+            // --- SỬA QUAN TRỌNG Ở DÒNG DƯỚI ---
+            // Phải dùng () => setFilter(type) để tránh lỗi lặp vô tận
+            onClick={() => setFilter(type)} 
+          >
+            <Filter className="size-4" />
+            {FilterType[type]}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
-
-
-  </div>
-  )
-}
-
-export default StatsAndFilters
+export default StatsAndFilters;

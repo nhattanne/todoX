@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+
 import {
   CheckCircle2,
   Circle,
@@ -13,20 +14,66 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { toast } from "sonner";
+import api from "@/lib/axios";
 
 const TaskCard = ({ task, index, handleTaskChanged }) => {
-  let isEditting = false;
-
+  const [isEditting, setIsEditting] = useState(false);
+  const [updateTaskTitle, setUpdateTaskTitle] = useState(task.title || "");
   const deleteTask = async (taskId) => {
     try {
       await api.delete(`/tasks/${taskId}`);
       toast.success("Nhiệm vụ đã xóa");
-      handleTaskChanged();
+      Button;
     } catch (error) {
-      console.error("Lỗi xảy ra khi thêm task.", error);
-      toast.error("Lỗi xảy ra khi thêm nhiệm vụ mới.");
+      console.error("Lỗi xảy ra khi xóa task.", error);
+      toast.error("Lỗi xảy ra khi xóa nhiệm vụ mới.");
     }
   };
+
+  const updateTask = async () => {
+    try {
+      setIsEditting(false);
+      await api.put(`/tasks/${task._id}`, {
+        title: updateTaskTitle,
+      });
+      toast.success(`Nhiệm vụ đã đổi thành ${updateTaskTitle} `);
+      //gửi request lên server để update
+
+      handleTaskChanged();
+    } catch (error) {
+      console.error("Lỗi xảy ra khi update task.", error);
+      toast.error("Lỗi xảy ra khi cập nhập nhiệm vụ mới.");
+    }
+  };
+  const toggleTaskCompleteButton = async () => {
+    try {
+      if (task.status === "active") {
+        await api.put(`/tasks/${task._id}`, {
+          status: "complete",
+          completedAt: new Date().toISOString(),
+        });
+
+        toast.success(`${task.title} đã hoàn thành`);
+      } else {
+        await api.put(`/tasks/${task._id}`, {
+          status: "active",
+          completedAt: null,
+        });
+        toast.success(`${task.title} đã chuyển về chưa hoàn thành`);
+      }
+
+      handleTaskChanged(); 
+    } catch (error) {
+      console.error("Lỗi xảy ra khi cập nhật trạng thái task.", error);
+      toast.error("Lỗi xảy ra khi cập nhật trạng thái nhiệm vụ.");
+    }
+  };
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      updateTask();
+    }
+  };
+
   return (
     <Card
       className={cn(
@@ -48,6 +95,7 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
               ? "text-success/80"
               : "text-muted-foreground hover:text-primary"
           )}
+          onClick={toggleTaskCompleteButton}
         >
           {task.status === "complete" ? (
             <CheckCircle2 className="size-5" />
@@ -63,6 +111,13 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
               placeholder="Cần phải làm gì?"
               className="flex-1 h-12 text-base border-border/50 focus:bor der-primary/50 focus:ring-primary/20"
               type="text"
+              value={updateTaskTitle}
+              onChange={(e) => setUpdateTaskTitle(e.target.value)}
+              onKeyPress={handleKeyPress}
+              onBlur={() => {
+                setIsEditting(false);
+                setUpdateTaskTitle(task.title || "");
+              }}
             />
           ) : (
             <p
@@ -81,15 +136,30 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
           <div className="flex items-center gap-2 mt-1">
             <Calendar className="size-3 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">
-              {new Date(task.createdAt).toLocaleDateString()}
-              {/* tolacaledatestring hàm theo giờ VN */}
+              {new Date(task.createdAt).toLocaleString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+              })}
             </span>
             {task.completedAt && (
               <>
                 <span className="text-xs text-muted-foreground"> - </span>
                 <Calendar className="size-3 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">
-                  {new Date(task.completedAt).toLocaleTimeString()}
+                  {new Date(task.completedAt).toLocaleString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                  })}
                 </span>
               </>
             )}
@@ -104,6 +174,10 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
             variant="ghost"
             size="icon"
             className="shrink-0 transition-colors size-8 text-muted-foreground hover:text-info "
+            onClick={() => {
+              setIsEditting(true);
+              setUpdateTaskTitle(task.title || "");
+            }}
           >
             <SquarePen className="size-4"></SquarePen>
           </Button>
@@ -113,6 +187,7 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
             variant="ghost"
             size="icon"
             className="shrink-0 transition-colors size-8 text-gray-600 hover:text-destructive hover:bg-red "
+            onClick={() => deleteTask(task._id)}
           >
             <Trash2 className="size-4 " strokeWidth={2.5} />
           </Button>
